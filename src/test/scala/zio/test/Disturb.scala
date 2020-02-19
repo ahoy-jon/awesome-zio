@@ -1,7 +1,7 @@
 package zio.test
 
-import zio.ZIO.{ EffectTotal, FlatMap, InterruptStatus, Succeed }
-import zio.{ IO, ZIO }
+import zio.ZIO._
+import zio.ZIO
 
 object Disturb {
 
@@ -23,8 +23,8 @@ object Disturb {
       case e: InterruptStatus[R, E, A] if e.flag.isInterruptible => next(e.zio)
       case e: InterruptStatus[R, E, A]                           => lift(e) //Will not disturb something not interruptible.
       case _ if remainingSteps <= 0                              => ZIO.failNow(None)
-      case e: EffectTotal[A]                                     => lift(e)
-      case e: Succeed[A]                                         => lift(e)
+      case e: EffectTotal[A]                                     => lift[Any, Nothing, A](e)
+      case e: Succeed[A]                                         => lift[Any, Nothing, A](e)
       //case _ => ??? // implement for other subclasses.
       case f: FlatMap[R, E, _, A] =>
         next(f.zio) >>= { x =>
@@ -32,5 +32,4 @@ object Disturb {
         }
     }
   }
-
 }
